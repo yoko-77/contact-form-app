@@ -113,7 +113,7 @@ return [
     |
     */
 
-    'faker_locale' => 'en_US',
+    'faker_locale' => 'ja_JP',
 
     /*
     |--------------------------------------------------------------------------
@@ -161,12 +161,12 @@ return [
 
     'providers' => ServiceProvider::defaultProviders()->merge([
         /*
-         * Package Service Providers...
-         */
+             * Package Service Providers...
+             */
 
         /*
-         * Application Service Providers...
-         */
+             * Application Service Providers...
+             */
         AppServiceProvider::class,
         AuthServiceProvider::class,
         // App\Providers\BroadcastServiceProvider::class,
