@@ -54,14 +54,17 @@ class AdminTest extends TestCase
     public function キーワードで名前とメールアドレスを部分一致で絞り込める(): void
     {
         $user = User::factory()->create();
-        $byName = Contact::factory()->create(['first_name' => '山田', 'email' => 'aaa@example.com']);
-        $byEmail = Contact::factory()->create(['first_name' => '佐藤', 'email' => 'yamada@example.com']);
-        Contact::factory()->create(['first_name' => '鈴木', 'last_name' => '一郎', 'email' => 'suzuki@example.com']);
+        $byFirstName = Contact::factory()->create(['first_name' => '山田', 'last_name' => '太郎', 'email' => 'aaa@example.com']);
+        $byLastName = Contact::factory()->create(['first_name' => '佐藤', 'last_name' => '花子', 'email' => 'bbb@example.com']);
+        $byEmail = Contact::factory()->create(['first_name' => '鈴木', 'last_name' => '一郎', 'email' => 'yamada@example.com']);
+        Contact::factory()->create(['first_name' => '高橋', 'last_name' => '次郎', 'email' => 'takahashi@example.com']);
 
-        $nameResponse = $this->actingAs($user)->get('/admin?keyword=山');
+        $firstNameResponse = $this->actingAs($user)->get('/admin?keyword=山');
+        $lastNameResponse = $this->actingAs($user)->get('/admin?keyword=花');
         $emailResponse = $this->actingAs($user)->get('/admin?keyword=yamada');
 
-        $nameResponse->assertViewHas('contacts', fn ($contacts) => $contacts->pluck('id')->all() === [$byName->id]);
+        $firstNameResponse->assertViewHas('contacts', fn ($contacts) => $contacts->pluck('id')->all() === [$byFirstName->id]);
+        $lastNameResponse->assertViewHas('contacts', fn ($contacts) => $contacts->pluck('id')->all() === [$byLastName->id]);
         $emailResponse->assertViewHas('contacts', fn ($contacts) => $contacts->pluck('id')->all() === [$byEmail->id]);
     }
 
@@ -102,6 +105,29 @@ class AdminTest extends TestCase
         $other->forceFill(['created_at' => '2026-11-02 10:00:00'])->save();
 
         $response = $this->actingAs($user)->get('/admin?date=2026-11-01');
+
+        $response->assertViewHas('contacts', fn ($contacts) => $contacts->pluck('id')->all() === [$target->id]);
+    }
+
+    /** @test */
+    public function 全ての検索条件を同時に指定して絞り込める(): void
+    {
+        $user = User::factory()->create();
+        $category = Category::factory()->create();
+        $otherCategory = Category::factory()->create();
+        $base = ['first_name' => '山田', 'last_name' => '太郎', 'email' => 'aaa@example.com', 'gender' => 1, 'category_id' => $category->id];
+
+        $target = Contact::factory()->create($base);
+        $otherKeyword = Contact::factory()->create(array_merge($base, ['first_name' => '鈴木', 'email' => 'bbb@example.com']));
+        $otherGender = Contact::factory()->create(array_merge($base, ['gender' => 2]));
+        $otherCategoryContact = Contact::factory()->create(array_merge($base, ['category_id' => $otherCategory->id]));
+        $otherDate = Contact::factory()->create($base);
+        foreach ([$target, $otherKeyword, $otherGender, $otherCategoryContact] as $contact) {
+            $contact->forceFill(['created_at' => '2026-11-01 10:00:00'])->save();
+        }
+        $otherDate->forceFill(['created_at' => '2026-11-02 10:00:00'])->save();
+
+        $response = $this->actingAs($user)->get('/admin?keyword=山田&gender=1&category_id='.$category->id.'&date=2026-11-01');
 
         $response->assertViewHas('contacts', fn ($contacts) => $contacts->pluck('id')->all() === [$target->id]);
     }

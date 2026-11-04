@@ -40,6 +40,7 @@ class StoreContactRequestTest extends TestCase
         $validator = Validator::make($data, (new StoreContactRequest)->rules());
 
         $this->assertTrue($validator->passes());
+        $this->assertEquals($data, $validator->validated());
     }
 
     /** @test */
@@ -57,6 +58,17 @@ class StoreContactRequestTest extends TestCase
     public function 桁数が足りない電話番号を拒否する(): void
     {
         $data = array_merge($this->validData(), ['tel' => '012345678']);
+
+        $validator = Validator::make($data, (new StoreContactRequest)->rules());
+
+        $this->assertFalse($validator->passes());
+        $this->assertTrue($validator->errors()->has('tel'));
+    }
+
+    /** @test */
+    public function 桁数が多すぎる電話番号を拒否する(): void
+    {
+        $data = array_merge($this->validData(), ['tel' => '090123456789']);
 
         $validator = Validator::make($data, (new StoreContactRequest)->rules());
 

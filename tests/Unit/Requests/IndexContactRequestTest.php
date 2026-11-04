@@ -26,6 +26,7 @@ class IndexContactRequestTest extends TestCase
         $validator = Validator::make($data, (new IndexContactRequest)->rules());
 
         $this->assertTrue($validator->passes());
+        $this->assertEquals($data, $validator->validated());
     }
 
     /** @test */

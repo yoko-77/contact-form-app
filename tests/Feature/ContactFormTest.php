@@ -70,9 +70,14 @@ class ContactFormTest extends TestCase
         $response->assertViewIs('contact.confirm');
         $response->assertSee('山田');
         $response->assertSee('太郎');
+        $response->assertSee('男性');
         $response->assertSee('yamada@example.com');
+        $response->assertSee('09012345678');
+        $response->assertSee('東京都渋谷区千駄ヶ谷1-2-3');
+        $response->assertSee('千駄ヶ谷マンション305');
         $response->assertSee('商品のお届けについて');
         $response->assertSee('質問');
+        $response->assertSee('商品の届け日について');
     }
 
     /** @test */
