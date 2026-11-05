@@ -12,13 +12,26 @@ class IndexContactRequestTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** @test */
-    public function キーワード・性別・カテゴリ・日付のフィルタを受け付ける(): void
+    public static function genderProvider(): array
+    {
+        return [
+            '男性' => [1],
+            '女性' => [2],
+            'その他' => [3],
+        ];
+    }
+
+    /**
+     * @test
+     *
+     * @dataProvider genderProvider
+     */
+    public function キーワード・性別・カテゴリ・日付のフィルタを受け付ける(int $gender): void
     {
         $category = Category::factory()->create();
         $data = [
             'keyword' => '山田',
-            'gender' => 1,
+            'gender' => $gender,
             'category_id' => $category->id,
             'date' => '2026-11-01',
         ];

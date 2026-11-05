@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Category;
 use App\Models\Tag;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Arr;
 use Tests\TestCase;
 
 class ContactFormTest extends TestCase
@@ -64,24 +65,18 @@ class ContactFormTest extends TestCase
         $category = Category::factory()->create(['content' => '商品のお届けについて']);
         $tag = Tag::factory()->create(['name' => '質問']);
 
-        $response = $this->post('/contacts/confirm', $this->validData($category, [$tag->id]));
+        $data = $this->validData($category, [$tag->id]);
+
+        $response = $this->post('/contacts/confirm', $data);
 
         $response->assertOk();
         $response->assertViewIs('contact.confirm');
-        $response->assertSee('山田');
-        $response->assertSee('太郎');
-        $response->assertSee('男性');
-        $response->assertSee('yamada@example.com');
-        $response->assertSee('09012345678');
-        $response->assertSee('東京都渋谷区千駄ヶ谷1-2-3');
-        $response->assertSee('千駄ヶ谷マンション305');
-        $response->assertSee('商品のお届けについて');
-        $response->assertSee('質問');
-        $response->assertSee('商品の届け日について');
+        $response->assertSee(Arr::except($data, ['gender', 'category_id', 'tag_ids']));
+        $response->assertSee(['男性', $category->content, $tag->name]);
     }
 
     /** @test */
-    public function 確認ページへの送信で入力エラーがあれば入力ページに戻りエラーが返る(): void
+    public function バリデーションエラーになる入力の場合、確認ページへは移動せず、入力ページに戻りエラーが返る(): void
     {
         $response = $this->from('/')->post('/contacts/confirm', []);
 
@@ -95,11 +90,13 @@ class ContactFormTest extends TestCase
         $category = Category::factory()->create();
         $tags = Tag::factory()->count(2)->create();
 
-        $response = $this->post('/contacts', $this->validData($category, $tags->pluck('id')->all()));
+        $data = $this->validData($category, $tags->pluck('id')->all());
+
+        $response = $this->post('/contacts', $data);
 
         $response->assertRedirect('/thanks');
         $this->assertDatabaseHas('contacts', [
-            'email' => 'yamada@example.com',
+            'email' => $data['email'],
             'category_id' => $category->id,
         ]);
         $this->assertDatabaseCount('contact_tag', 2);
@@ -109,7 +106,7 @@ class ContactFormTest extends TestCase
     }
 
     /** @test */
-    public function 送信で入力エラーがあれば保存されずエラーが返る(): void
+    public function バリデーションエラーになる入力の場合、保存されず、サンクスページに移動せず、送信元のページに戻りエラーが返る(): void
     {
         $response = $this->from('/contacts/confirm')->post('/contacts', []);
 

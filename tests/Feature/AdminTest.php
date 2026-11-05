@@ -56,12 +56,12 @@ class AdminTest extends TestCase
         $user = User::factory()->create();
         $byFirstName = Contact::factory()->create(['first_name' => '山田', 'last_name' => '太郎', 'email' => 'aaa@example.com']);
         $byLastName = Contact::factory()->create(['first_name' => '佐藤', 'last_name' => '花子', 'email' => 'bbb@example.com']);
-        $byEmail = Contact::factory()->create(['first_name' => '鈴木', 'last_name' => '一郎', 'email' => 'yamada@example.com']);
+        $byEmail = Contact::factory()->create(['first_name' => '鈴木', 'last_name' => '一郎', 'email' => 'suzuiti@example.com']);
         Contact::factory()->create(['first_name' => '高橋', 'last_name' => '次郎', 'email' => 'takahashi@example.com']);
 
-        $firstNameResponse = $this->actingAs($user)->get('/admin?keyword=山');
-        $lastNameResponse = $this->actingAs($user)->get('/admin?keyword=花');
-        $emailResponse = $this->actingAs($user)->get('/admin?keyword=yamada');
+        $firstNameResponse = $this->actingAs($user)->get('/admin?keyword=田');
+        $lastNameResponse = $this->actingAs($user)->get('/admin?keyword=子');
+        $emailResponse = $this->actingAs($user)->get('/admin?keyword=iti');
 
         $firstNameResponse->assertViewHas('contacts', fn ($contacts) => $contacts->pluck('id')->all() === [$byFirstName->id]);
         $lastNameResponse->assertViewHas('contacts', fn ($contacts) => $contacts->pluck('id')->all() === [$byLastName->id]);

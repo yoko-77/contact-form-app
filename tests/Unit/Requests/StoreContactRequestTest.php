@@ -32,10 +32,23 @@ class StoreContactRequestTest extends TestCase
         ];
     }
 
-    /** @test */
-    public function 全ての必須項目とタグ入力を受け付ける(): void
+    public static function genderProvider(): array
     {
-        $data = $this->validData();
+        return [
+            '男性' => [1],
+            '女性' => [2],
+            'その他' => [3],
+        ];
+    }
+
+    /**
+     * @test
+     *
+     * @dataProvider genderProvider
+     */
+    public function 全ての必須項目とタグ入力を受け付ける(int $gender): void
+    {
+        $data = array_merge($this->validData(), ['gender' => $gender]);
 
         $validator = Validator::make($data, (new StoreContactRequest)->rules());
 
@@ -46,7 +59,7 @@ class StoreContactRequestTest extends TestCase
     /** @test */
     public function ハイフン付きの電話番号を拒否する(): void
     {
-        $data = array_merge($this->validData(), ['tel' => '090-1234-5678']);
+        $data = array_merge($this->validData(), ['tel' => '03-12345678']);
 
         $validator = Validator::make($data, (new StoreContactRequest)->rules());
 
