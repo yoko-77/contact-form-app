@@ -1,66 +1,335 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# COACHTECH お問い合わせフォーム
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+## 概要
 
-## About Laravel
+一般ユーザーが利用する公開のお問い合わせフォームです。  
+誰でもお問い合わせを送信でき、管理者はログイン後にその内容を確認・管理します。
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+実装した機能は以下のとおりです。
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+### お問い合わせフォーム
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- 入力画面でお問い合わせを入力（入力内容別に入力制限あり）
+  - 「確認画面」押下で確認画面へ移動
+- 確認画面で、入力したお問い合わせ情報を表示
+- 確認画面で内容問題なければ
+  - 「送信」を押下で、お問い合わせ登録完了
+  - 「修正」を押下で、お問い合わせ入力ページに戻る（直前に入力していた情報は保持された状態で表示）
 
-## Learning Laravel
+### 管理画面
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+管理画面は以下の2つで構成
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+#### お問い合わせ内容の管理
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+- 一覧表示（7件ずつ）
+- お問い合わせの検索
+  - 検索項目：名前もしくはメールアドレス（部分一致で検索可能）、性別、種類、登録日
+- お問い合わせ内容の詳細表示
+  - 一覧には表示されていない内容も含めて表示、削除ボタンあり
 
-## Laravel Sponsors
+#### タグ管理
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+- 新規タグの追加
+  - 50文字以内、重複登録不可の入力制限あり
+- 編集
+  - 既存タグの名称変更、新規タグ追加と同様の入力制限あり
+- 削除
+  - 既存タグを削除（そのタグが付いていたお問い合わせからも、タグの紐づけが自動で外れる）
 
-### Premium Partners
+### 認証
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+- 管理者登録可能
+- 管理者は「管理画面」へのログイン・ログアウト、各種操作が可能
 
-## Contributing
+## ER図
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+```mermaid
+erDiagram
+    categories ||--o{ contacts : "category_id"
+    contacts ||--o{ contact_tag : "contact_id"
+    tags ||--o{ contact_tag : "tag_id"
 
-## Code of Conduct
+    users {
+        bigint id PK
+        varchar name
+        varchar email UK
+        timestamp email_verified_at
+        varchar password
+        varchar remember_token
+        timestamp created_at
+        timestamp updated_at
+    }
+    categories {
+        bigint id PK
+        varchar content
+        timestamp created_at
+        timestamp updated_at
+    }
+    contacts {
+        bigint id PK
+        bigint category_id FK
+        varchar first_name
+        varchar last_name
+        tinyint gender
+        varchar email
+        varchar tel
+        varchar address
+        varchar building
+        varchar detail
+        timestamp created_at
+        timestamp updated_at
+    }
+    tags {
+        bigint id PK
+        varchar name UK
+        timestamp created_at
+        timestamp updated_at
+    }
+    contact_tag {
+        bigint id PK
+        bigint contact_id FK "UNIQUE(contact_id, tag_id)"
+        bigint tag_id FK "UNIQUE(contact_id, tag_id)"
+        timestamp created_at
+        timestamp updated_at
+    }
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## 環境構築手順
 
-## Security Vulnerabilities
+プロジェクト名「contact-form-app」を、以下の手順に従って構築してください。
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+以下のコマンドは、ターミナル（WindowsはWSLのUbuntu）で実行してください。
 
-## License
+### 事前準備
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+#### ① Docker の起動
+
+Docker Desktop（またはDocker Engine）が起動していることを確認してください。
+
+#### ② 他プロジェクトの停止
+
+他のプロジェクトが起動中の場合、以降の作業が正しく実行できません。  
+起動中のプロジェクトがあるか、以下を実行して確認してください。
+
+```bash
+docker ps
+```
+
+「CONTAINER ID」〜「NAMES」の見出し行の下に、表示されるものがあるか確認してください。
+
+- 何も表示されない場合
+  - 「1. リポジトリをクローンする」から作業を開始してください。
+- 何か表示される場合
+  - 「NAMES」に表示されている名前の前半が、起動中のプロジェクトのフォルダ名です（例：「readme-check-laravel.test-1」なら「readme-check」フォルダ）。
+  - 起動中のプロジェクトのフォルダで以下を実行し、停止してください。
+
+    ```bash
+    ./vendor/bin/sail down
+    ```
+
+  - 停止したら、再度 `docker ps` を実行し、見出し行の下に何も表示されなくなったことを確認してから、「1. リポジトリをクローンする」から作業を開始してください。
+
+### 1. リポジトリをクローンする
+
+任意の作業フォルダで、以下を実行してください。
+
+```bash
+git clone https://github.com/yoko-77/contact-form-app.git
+cd contact-form-app
+```
+
+### 2. 依存パッケージ（vendor）をインストールする
+
+以下を実行してください。
+
+```bash
+docker run --rm \
+    -u "$(id -u):$(id -g)" \
+    -v "$(pwd):/var/www/html" \
+    -w /var/www/html \
+    -e COMPOSER_CACHE_DIR=/tmp/composer_cache \
+    laravelsail/php82-composer:latest \
+    composer install --ignore-platform-reqs
+```
+
+### 3. .env を作成・修正する
+
+以下を実行してください。
+
+```bash
+cp .env.example .env
+```
+
+`.env` を開き、「DB_CONNECTION」を検索してください。  
+データベース接続に関する「DB_CONNECTION」から「DB_PASSWORD」までを、以下に書き換えます。
+
+```
+DB_CONNECTION=mysql
+DB_HOST=mysql
+DB_PORT=3306
+DB_DATABASE=laravel
+DB_USERNAME=sail
+DB_PASSWORD=password
+```
+
+テストのカバレッジを表示するため、末尾に以下を追加します。
+
+```
+XDEBUG_MODE=coverage
+```
+
+上記が完了したら、`.env` を上書き保存して閉じてください。
+
+### 4. Sail を起動する
+
+以下を実行してください。
+
+```bash
+./vendor/bin/sail up -d
+```
+
+> ⚠️ **M1/M2/M3 Mac（Apple Silicon）をお使いの方**
+>
+> Apple Silicon搭載のMacでは、`sail up -d` 実行時に以下のエラーが発生することがあります。
+>
+> ```
+> no matching manifest for linux/arm64/v8
+> ```
+>
+> 解決方法：`compose.yaml` を開き、「mysql:」を検索してください。  
+> 「image:」の行の直下に `platform: 'linux/amd64'` を追加します。
+>
+> ```yaml
+> mysql:
+>     image: 'mysql/mysql-server:8.0'
+>     platform: 'linux/amd64'  # ← この行を追加
+>     ports:
+>         ...
+> ```
+>
+> 編集後、`compose.yaml` を保存して閉じてから、再度上記のSailを起動するコマンドを実行してください。
+
+### 5. Sail のエイリアスを設定する
+
+エイリアスの設定が必要か、以下を実行して確認してください。
+
+```bash
+alias sail
+```
+
+- 冒頭に「alias sail='…'」または「sail='…'」が表示された場合
+  - エイリアスの設定は不要です。  
+    「6. アプリケーションキーを生成する」に進んでください。
+- 何も表示されない、または「not found」と表示された場合
+  - 以下を実行して、使用しているシェルを確認してください。
+
+    ```bash
+    echo $SHELL
+    ```
+
+  - 末尾が「bash」と表示された場合は、以下を実行してください。
+
+    ```bash
+    echo "alias sail='[ -f sail ] && bash sail || bash vendor/bin/sail'" >> ~/.bashrc
+    exec $SHELL
+    ```
+
+  - 末尾が「zsh」と表示された場合は、以下を実行してください。
+
+    ```bash
+    echo "alias sail='[ -f sail ] && bash sail || bash vendor/bin/sail'" >> ~/.zshrc
+    exec $SHELL
+    ```
+
+  - 実行後、「6. アプリケーションキーを生成する」に進んでください。
+
+### 6. アプリケーションキーを生成する
+
+※ 以降のコマンドは `sail` で実行します。
+
+以下を実行してください。
+
+```bash
+sail artisan key:generate
+```
+
+### 7. マイグレーションと初期データの投入
+
+以下を実行してください。
+
+```bash
+sail artisan migrate --seed
+```
+
+※ Sail 起動直後で MySQL の準備ができていない場合、接続エラーになることがあります。  
+その場合は少し待ってから再度実行してください。
+
+※ 作業中、既存のデータベースをリセットしたい場合は以下を実行してください。
+
+```bash
+sail artisan migrate:fresh --seed
+```
+
+### 8. フロントエンドのビルド
+
+以下を実行してください。
+
+```bash
+sail npm install
+sail npm run build
+```
+
+### 9. 動作確認
+
+以下のURLをブラウザで確認してください。
+
+- お問い合わせフォーム：http://localhost
+- 管理者登録画面：http://localhost/register
+- ログイン画面：http://localhost/login
+- 管理画面：http://localhost/admin
+  - 初期管理者（シーダーで登録済み）の以下でログインしてください。
+    - メールアドレス：test@example.com
+    - パスワード：password
+- phpMyAdmin：http://localhost:8080
+
+## テストの実行方法
+
+以下を実行してください。
+
+```bash
+sail artisan test
+```
+
+カバレッジを表示する場合は、以下を実行してください。
+
+```bash
+sail artisan test --coverage
+```
+
+## 使用技術
+
+- PHP 8.2
+- Laravel 10.50.4
+- Laravel Fortify 1.36.2（認証）
+- Laravel Sail（Docker 開発環境）
+- MySQL 8.0
+- phpMyAdmin
+- Vite 5
+- Tailwind CSS 3.4
+- Docker / Docker Compose
+
+## APIエンドポイント一覧
+
+公開API（応用機能）は未実装のため、ありません。
+
+## 開発環境URL
+
+- お問い合わせフォーム：http://localhost
+- 管理画面：http://localhost/admin
+- 管理者登録画面：http://localhost/register
+- ログイン画面：http://localhost/login
+- phpMyAdmin：http://localhost:8080
+
+## 作成者
+yoko-77
